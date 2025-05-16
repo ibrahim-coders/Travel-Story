@@ -162,7 +162,8 @@ app.delete('/delete-image', async (req, res) => {
   }
   try {
     const filename = path.basename(imageUrl);
-    const filepath = path.json(__dirname, 'uploads', filename);
+    const filepath = path.join(__dirname, 'uploads', filename);
+
     if (fs.existsSync(filepath)) {
       fs.status(200).json({ message: 'Image deleted sucessfully' });
     } else {
@@ -192,7 +193,7 @@ app.get('/get-all-stories', authenticateToken, async (req, res) => {
 });
 
 //image upload
-app.get('/get-all-stories', upload.single('image'), async (req, res) => {
+app.post('/upload-image', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res
@@ -231,9 +232,10 @@ app.put('/edit-story/:id', authenticateToken, async (req, res) => {
     travelStory.imageUrl = imageUrl || placehoderImgUrl;
     travelStory.visitDate = parseVisitedDate;
     await travelStory.save();
+
     res
       .status(200)
-      .json({ story: travelStory, message: 'Uploaded successfully' });
+      .json({ story: travelStory, message: 'Updated successfully' });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
@@ -271,7 +273,7 @@ app.delete('/delete-story/:id', authenticateToken, async (req, res) => {
 app.put('/updated-favouritr/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { isFavourite } = req.body;
-  const { userId } = req.User;
+  const { userId } = req.user;
   try {
     const travelStory = await TrvelStory.findOne({ _id: id, userId: userId });
     if (!travelStory) {
