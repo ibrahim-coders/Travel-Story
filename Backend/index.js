@@ -192,6 +192,25 @@ app.get('/get-all-stories', authenticateToken, async (req, res) => {
   }
 });
 
+//serve static files uploads
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'assets')));
+//image upload
+app.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ error: true, message: 'No image uploaded' });
+    }
+    const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`;
+    res.status(200).json({ imageUrl });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+});
+
 //image upload
 app.post('/upload-image', upload.single('image'), async (req, res) => {
   try {
@@ -270,7 +289,7 @@ app.delete('/delete-story/:id', authenticateToken, async (req, res) => {
 });
 
 //isFavourite
-app.put('/updated-favouritr/:id', authenticateToken, async (req, res) => {
+app.put('/updated-favourite/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { isFavourite } = req.body;
   const { userId } = req.user;

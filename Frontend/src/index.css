@@ -10,3 +10,7 @@ body {
   background-color: #fdfeff;
   overflow-x: hidden;
 }
+
+.icon-btn {
+  @apply text-[22px] text-slate-300 cursor-pointer hover:textred-500;
+}
