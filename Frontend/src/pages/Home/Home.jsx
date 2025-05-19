@@ -1,21 +1,29 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router‑dom';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import Navbar from '../../components/Navbar';
-import TravelStoryCard from '../../components/TravelStoryCard';
 import toast from 'react-hot-toast';
 import { MdAdd } from 'react-icons/md';
 import Modal from 'react-modal';
+import AddEditTravelStory from './AddEditTravelStory';
+import TravelStoryCard from '../../components/TravelStoryCard';
+
+Modal.setAppElement('#root');
+
 const Home = () => {
   const navigate = useNavigate();
+
+  // -------- State --------
   const [userInfo, setUserInfo] = useState(null);
   const [stories, setStories] = useState([]);
-  const [opentAddEditModel, setOpenAddEditModel] = useState({
+
+  const [modalState, setModalState] = useState({
     isShow: false,
     type: 'add',
-    date: 'null',
+    story: null,
   });
 
+  // -------- API Calls --------
   const fetchUserInfo = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get('/get-user');
@@ -25,7 +33,7 @@ const Home = () => {
         localStorage.clear();
         navigate('/login', { replace: true });
       } else {
-        console.error('Error fetching user info:', err);
+        console.error(err);
       }
     }
   }, [navigate]);
@@ -35,43 +43,40 @@ const Home = () => {
       const { data } = await axiosInstance.get('/get-all-stories');
       if (data?.stories) setStories(data.stories);
     } catch (err) {
-      console.error('Error fetching stories:', err);
+      console.error(err);
     }
   }, []);
 
-  //  Lifecycle
-
+  // -------- Lifecycle --------
   useEffect(() => {
     fetchUserInfo();
     fetchAllStories();
   }, [fetchUserInfo, fetchAllStories]);
 
-  // Card‑level actions
-  const handleEdit = story => {
-    console.log('EDIT story', story);
-  };
+  // -------- Card Actions --------
+  const handleEdit = story =>
+    setModalState({ isShow: true, type: 'edit', story });
 
-  const handleViewStory = story => {
-    console.log('VIEW story', story);
-  };
+  const handleViewStory = story =>
+    navigate(`/story/${story._id}`, { state: story });
 
   const toggleFavourite = async story => {
     try {
-      const response = await axiosInstance.put(
-        '/update-favourite/' + story._id,
+      const { data } = await axiosInstance.put(
+        `/update-favourite/${story._id}`,
         { isFavourite: !story.isFavourite }
       );
-
-      if (response.data && response.data.story) {
+      if (data?.story) {
         toast.success('Story updated successfully');
         fetchAllStories();
       }
     } catch (err) {
-      console.error('Error toggling favourite:', err);
+      toast.error('Failed to update favourite');
+      console.error(err);
     }
   };
 
-  // Render
+  // -------- Render --------
   return (
     <>
       <Navbar userInfo={userInfo} />
@@ -95,28 +100,36 @@ const Home = () => {
             ))}
           </div>
         ) : (
-          <p className="h-40 flex justify-center items-center text-lg text-gray‑500">
+          <p className="h-40 flex justify-center items-center text-lg text-gray-500">
             No travel stories yet.
           </p>
         )}
       </main>
 
+      {/* ---------- Modal ---------- */}
       <Modal
-        isOpen={opentAddEditModel.isShow}
-        onRequestClose={() => {}}
-        style={{
-          overlay: {
-            backgroundColor: 'rgba(0,0,0,0,2)',
-            zIndex: 999,
-          },
-        }}
-        appElement={document.getElementById('root')}
-        className="model-box"
-      />
+        isOpen={modalState.isShow}
+        onRequestClose={() =>
+          setModalState({ isShow: false, type: 'add', story: null })
+        }
+        overlayClassName="fixed inset-0 bg-black/20 z-50 flex items-center justify-center"
+        className="bg-white rounded-lg w-full max-w-xl p-6 outline-none"
+      >
+        <AddEditTravelStory
+          type={modalState.type}
+          storyInfo={modalState.story}
+          onClose={() =>
+            setModalState({ isShow: false, type: 'add', story: null })
+          }
+          getAllTravelStories={fetchAllStories}
+        />
+      </Modal>
+
+      {/* ---------- Floating Add Button ---------- */}
       <button
-        className="w-16 h-16 flex items-center justify-center rounded-full bg-sky-500 hover:bg-sky-700 fixed right-10 bottom-10 z-"
+        className="w-16 h-16 flex items-center justify-center rounded-full bg-sky-500 hover:bg-sky-700 fixed right-10 bottom-10 z-40 shadow-lg cursor-pointer"
         onClick={() =>
-          setOpenAddEditModel({ isShow: true, type: 'add', date: 'null' })
+          setModalState({ isShow: true, type: 'add', story: null })
         }
       >
         <MdAdd className="text-[32px] text-white" />

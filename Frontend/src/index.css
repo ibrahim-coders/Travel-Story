@@ -2,6 +2,21 @@
 
 @import 'tailwindcss';
 
+@layer base {
+}
+.rdp-root {
+  --rdp-accent-color: #01b0cb;
+  --rdp-accent-background-color: #dffbff;
+  --rdp-day_button-border-radius: 8px;
+
+  /* If you really want bold text on selected days: */
+  font-family: var(--rdp-font-family);
+}
+
+.rdp-day_selected {
+  font-weight: 700; /* bold */
+}
+
 :root {
   font-family: 'Poppins', sans-serif;
 }
@@ -10,7 +25,25 @@ body {
   background-color: #fdfeff;
   overflow-x: hidden;
 }
+/* Custom scrollbar styles */
 
+.scrollbar::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #057c8e;
+  border-redius: 3px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background-color: rgb(172, 201, 229);
+}
+
+.model-box {
+  @apply w-[80vw] md:w-[40%] h-[80vh] bg-white rounded-lg mx-auto mt-14 p-5 scrollbar z-50;
+}
 .icon-btn {
-  @apply text-[22px] text-slate-300 cursor-pointer hover:textred-500;
+  @apply text-[22px] text-slate-300 cursor-pointer hover:text-red-500;
 }
