@@ -15,7 +15,7 @@ const DateSelector = ({ date, setDate }) => {
         <MdOutlineDateRange className="text-lg" />
         {date
           ? moment(date).format('Do MMM YYYY')
-          : moment().format('Do MMM YYYY')}
+          : 'Pick a date'}
       </button>
       {openDatePicker && (
         <div className="overflow-hidden p-5 bg-sky-50/80 rounded-lg relative pt-9">
@@ -30,7 +30,6 @@ const DateSelector = ({ date, setDate }) => {
             mode="single"
             selected={date}
             onSelect={setDate}
-            pagedNavigation={false}
           />
         </div>
       )}

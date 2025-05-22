@@ -122,16 +122,29 @@ app.get('/get-user', authenticateToken, async (req, res) => {
   });
 });
 
+//get travle story
+app.get('/get-all-stories', authenticateToken, async (req, res) => {
+  const { userId } = req.user;
+  try {
+    const trvelStories = await TrvelStory.find({ userId }).sort({
+      isFavourite: -1,
+    });
+    res.status(200).json({ stories: trvelStories });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+});
 //add travel story
 app.post('/add-travel-story', authenticateToken, async (req, res) => {
   const { title, story, visitedLocation, imageUrl, visitDate } = req.body;
   const { userId } = req.user;
-  //validate required
+
   if (!title || !story || !visitedLocation || !imageUrl || !visitDate) {
     return res
       .status(400)
       .json({ error: true, message: 'All fields are required' });
   }
+
   const parseVisitedDate = new Date(parseInt(visitDate));
 
   try {
@@ -141,15 +154,15 @@ app.post('/add-travel-story', authenticateToken, async (req, res) => {
       visitedLocation,
       visitDate: parseVisitedDate,
       imageUrl,
+      userId,
     });
+
     await travelStory.save();
     res.status(201).json({ story: travelStory, message: 'Added successfully' });
   } catch (error) {
     res.status(400).json({ error: true, message: error.message });
   }
 });
-
-//get travle story
 
 //delete  an image from the folder
 
@@ -179,37 +192,7 @@ app.delete('/delete-image', async (req, res) => {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'assets')));
 
-//get travle story
-app.get('/get-all-stories', authenticateToken, async (req, res) => {
-  const { userId } = req.user;
-  try {
-    const trvelStories = await TrvelStory.find({ userId }).sort({
-      isFavourite: -1,
-    });
-    res.status(200).json({ stories: trvelStories });
-  } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
-  }
-});
-
 //serve static files uploads
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'assets')));
-//image upload
-app.post('/upload-image', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ error: true, message: 'No image uploaded' });
-    }
-    const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`;
-    res.status(200).json({ imageUrl });
-  } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
-  }
-});
 
 //image upload
 app.post('/upload-image', upload.single('image'), async (req, res) => {

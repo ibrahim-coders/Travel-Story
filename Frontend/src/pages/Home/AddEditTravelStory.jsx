@@ -1,14 +1,10 @@
-import { useState, useEffect } from 'react';
-import {
-  MdAdd,
-  MdClose,
-  MdDeleteOutline,
-  MdUpdate,
-  MdImage,
-} from 'react-icons/md';
+import { useState } from 'react';
+import { MdAdd, MdClose, MdDeleteOutline, MdUpdate } from 'react-icons/md';
 import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 import DateSelector from '../../components/DateSelector';
+import ImageSelector from '../../components/ImageSelector';
+import uploadImage from '../../utils/uploadImage';
 
 const btn =
   'inline-flex items-center gap-1 text-xs font-medium bg-cyan-50 text-slate-600 ' +
@@ -20,48 +16,49 @@ const input =
 
 const AddEditTravelStory = ({
   storyInfo,
-  type, // 'add' | 'edit'
+  type,
   onClose,
   getAllTravelStories,
 }) => {
-  /* ---------- local form state ---------- */
-  const [title, setTitle] = useState('');
-  const [storyImg, setStoryImg] = useState(null); // File
-  const [story, setStory] = useState('');
-  const [visitedLocation, setVisitedLocation] = useState('');
-  const [visitDate, setVisitDate] = useState(null);
+  const [title, setTitle] = useState(storyInfo?.title || '');
+  const [storyImg, setStoryImg] = useState(null);
+  const [story, setStory] = useState(storyInfo?.story || '');
+  const [visitedLocation, setVisitedLocation] = useState(
+    storyInfo?.visitedLocation || ''
+  );
+  const [visitDate, setVisitDate] = useState(
+    storyInfo?.visitDate ? new Date(storyInfo.visitDate) : null
+  );
 
-  /* ---------- preload data for edit ---------- */
-  useEffect(() => {
-    if (type === 'edit' && storyInfo) {
-      setTitle(storyInfo.title || '');
-      setStory(storyInfo.story || '');
-      setVisitedLocation(storyInfo.visitedLocation || '');
-      setVisitDate(storyInfo.visitDate ? new Date(storyInfo.visitDate) : null);
-    }
-  }, [type, storyInfo]);
-
-  /* ---------- submit handlers ---------- */
   const handleAddUpdateClick = async () => {
-    const payload = new FormData();
-    payload.append('title', title);
-    payload.append('story', story);
-    payload.append('visitedLocation', visitedLocation);
-    payload.append('visitDate', visitDate);
-    if (storyImg) payload.append('image', storyImg);
-
     try {
+      let imageUrl = null;
+
+      if (storyImg) {
+        const res = await uploadImage({ imageFile: storyImg });
+        imageUrl = res.imageUrl;
+      }
+      console.log(storyImg);
+      const payload = {
+        title,
+        story,
+        visitedLocation,
+        imageUrl,
+        visitDate: visitDate?.getTime(),
+      };
+
       if (type === 'add') {
-        await axiosInstance.post('/add-story', payload);
+        await axiosInstance.post('/add-travel-story', payload);
         toast.success('Story added successfully');
       } else {
         await axiosInstance.put(`/update-story/${storyInfo._id}`, payload);
         toast.success('Story updated successfully');
       }
+
       getAllTravelStories();
       onClose();
     } catch (err) {
-      toast.error('Please try again');
+      toast.error(err.message);
       console.error(err);
     }
   };
@@ -78,16 +75,13 @@ const AddEditTravelStory = ({
     }
   };
 
-  /* ---------- render ---------- */
   return (
-    <div className="flex flex-col gap-6">
-      {/* top bar */}
-      <div className="flex items-center justify-between">
+    <div className="p-4 bg-white rounded shadow-md">
+      <div className="flex items-center justify-between mb-4">
         <h5 className="text-xl font-semibold text-slate-700">
           {type === 'add' ? 'Add Story' : 'Update Story'}
         </h5>
-
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2">
           {type === 'add' ? (
             <button className={btn} onClick={handleAddUpdateClick}>
               <MdAdd className="text-lg" /> ADD STORY
@@ -105,16 +99,13 @@ const AddEditTravelStory = ({
               </button>
             </>
           )}
-
           <button className={btn} onClick={onClose}>
             <MdClose className="text-xl" />
           </button>
         </div>
       </div>
 
-      {/* form fields */}
       <div className="flex flex-col gap-4">
-        {/* title */}
         <div>
           <label className={label}>TITLE</label>
           <input
@@ -127,7 +118,6 @@ const AddEditTravelStory = ({
           />
         </div>
 
-        {/* visited location */}
         <div>
           <label className={label}>VISITED LOCATION</label>
           <input
@@ -135,35 +125,21 @@ const AddEditTravelStory = ({
             onChange={e => setVisitedLocation(e.target.value)}
             type="text"
             className={input}
-            placeholder="Beijing, China"
+            placeholder="Dhaka, Bangladesh"
             required
           />
         </div>
 
-        {/* date */}
         <div>
           <label className={label}>VISIT DATE</label>
           <DateSelector date={visitDate} setDate={setVisitDate} />
         </div>
 
-        {/* image upload */}
         <div>
           <label className={label}>IMAGE</label>
-          <label
-            className={`${input} flex items-center gap-2 cursor-pointer justify-center`}
-          >
-            <MdImage className="text-xl" />
-            {storyImg ? storyImg.name : 'Select image'}
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={e => setStoryImg(e.target.files[0])}
-            />
-          </label>
+          <ImageSelector storyImg={storyImg} setStoryImg={setStoryImg} />
         </div>
 
-        {/* story text */}
         <div>
           <label className={label}>STORY</label>
           <textarea

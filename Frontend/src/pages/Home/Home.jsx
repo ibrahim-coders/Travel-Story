@@ -12,8 +12,6 @@ Modal.setAppElement('#root');
 
 const Home = () => {
   const navigate = useNavigate();
-
-  // -------- State --------
   const [userInfo, setUserInfo] = useState(null);
   const [stories, setStories] = useState([]);
 
@@ -22,8 +20,11 @@ const Home = () => {
     type: 'add',
     story: null,
   });
-
-  // -------- API Calls --------
+  const [openviewModel, setViewModel] = useState({
+    isShow: false,
+    date: null,
+  });
+  //API Calls
   const fetchUserInfo = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get('/get-user');
@@ -47,7 +48,7 @@ const Home = () => {
     }
   }, []);
 
-  // -------- Lifecycle --------
+  //  Lifecycle
   useEffect(() => {
     fetchUserInfo();
     fetchAllStories();
@@ -57,13 +58,17 @@ const Home = () => {
   const handleEdit = story =>
     setModalState({ isShow: true, type: 'edit', story });
 
-  const handleViewStory = story =>
-    navigate(`/story/${story._id}`, { state: story });
+  const handleViewStory = story => {
+    setViewModel({
+      isShow: true,
+      date: story,
+    });
+  };
 
   const toggleFavourite = async story => {
     try {
       const { data } = await axiosInstance.put(
-        `/update-favourite/${story._id}`,
+        `/updated-favourite/${story._id}`,
         { isFavourite: !story.isFavourite }
       );
       if (data?.story) {
@@ -81,9 +86,9 @@ const Home = () => {
     <>
       <Navbar userInfo={userInfo} />
 
-      <main className="container mx-auto py-10">
+      <main className="container mx-auto py-10 ">
         {stories.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6">
             {stories.map(story => (
               <TravelStoryCard
                 key={story._id}
@@ -106,14 +111,14 @@ const Home = () => {
         )}
       </main>
 
-      {/* ---------- Modal ---------- */}
+      {/* Modal  */}
       <Modal
         isOpen={modalState.isShow}
         onRequestClose={() =>
           setModalState({ isShow: false, type: 'add', story: null })
         }
-        overlayClassName="fixed inset-0 bg-black/20 z-50 flex items-center justify-center"
-        className="bg-white rounded-lg w-full max-w-xl p-6 outline-none"
+        overlayClassName="fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-4 overflow-y-auto"
+        className="bg-white rounded-lg w-full max-w-2xl p-6 mt-10 mb-10 outline-none max-h-[90vh] overflow-y-auto"
       >
         <AddEditTravelStory
           type={modalState.type}
@@ -125,7 +130,27 @@ const Home = () => {
         />
       </Modal>
 
-      {/* ---------- Floating Add Button ---------- */}
+      {/* view modal */}
+      <Modal
+        isOpen={openviewModel.isShow}
+        onRequestClose={() =>
+          setModalState({ isShow: false, type: 'add', story: null })
+        }
+        overlayClassName="fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-4 overflow-y-auto"
+        className="bg-white rounded-lg w-full max-w-2xl p-6 mt-10 mb-10 outline-none max-h-[90vh] overflow-y-auto"
+      >
+        <AddEditTravelStory
+          type={modalState.type}
+          storyInfo={modalState.story}
+          onClose={() =>
+            setModalState({ isShow: false, type: 'add', story: null })
+          }
+          getAllTravelStories={fetchAllStories}
+        />
+      </Modal>
+
+      {/*  Floating Add Button  */}
+
       <button
         className="w-16 h-16 flex items-center justify-center rounded-full bg-sky-500 hover:bg-sky-700 fixed right-10 bottom-10 z-40 shadow-lg cursor-pointer"
         onClick={() =>
