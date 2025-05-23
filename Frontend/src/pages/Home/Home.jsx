@@ -70,15 +70,34 @@ const Home = () => {
 
   const toggleFavourite = async story => {
     try {
+      const updatedFavourite = !story.isFavourite;
+
+      // Optimistically update and sort
+      setStories(prev => {
+        const updated = prev.map(s =>
+          s._id === story._id ? { ...s, isFavourite: updatedFavourite } : s
+        );
+        // Sort after update
+        return [...updated].sort((a, b) => b.isFavourite - a.isFavourite);
+      });
+
       const { data } = await axiosInstance.put(
         `/updated-favourite/${story._id}`,
-        { isFavourite: !story.isFavourite }
+        { isFavourite: updatedFavourite }
       );
+
       if (data?.story) {
-        toast.success('Story updated successfully');
-        fetchAllStories();
+        toast.success('Favourite updated');
       }
     } catch (err) {
+      // Revert and sort
+      setStories(prev => {
+        const reverted = prev.map(s =>
+          s._id === story._id ? { ...s, isFavourite: story.isFavourite } : s
+        );
+        return [...reverted].sort((a, b) => b.isFavourite - a.isFavourite);
+      });
+
       toast.error('Failed to update favourite');
       console.error(err);
     }
@@ -91,9 +110,10 @@ const Home = () => {
 
       await axiosInstance.delete(`/delete-story/${storyId}`);
       toast.success('Story deleted');
-      fetchAllStories(); // optional
+
+      setStories(prev => prev.filter(story => story._id !== storyId));
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err?.response?.data?.message || 'Delete failed');
       console.error(err);
     }
   };

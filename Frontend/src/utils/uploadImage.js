@@ -1,4 +1,3 @@
-// utils/uploadImage.js
 import axiosInstance from './axiosInstance';
 
 const uploadImage = async ({ imageFile }) => {

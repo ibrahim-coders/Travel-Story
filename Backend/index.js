@@ -197,12 +197,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'assets')));
 //image upload
 app.post('/upload-image', upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.file?.filename) {
       return res
         .status(400)
         .json({ error: true, message: 'No image uploaded' });
     }
-    const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`;
+    const imageUrl = `http://localhost:8000/uploads/${req.file?.filename}`;
     res.status(200).json({ imageUrl });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
@@ -248,6 +248,7 @@ app.put('/edit-story/:id', authenticateToken, async (req, res) => {
 app.delete('/delete-story/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { userId } = req.user;
+
   try {
     const travelStory = await TrvelStory.findOne({ _id: id, userId: userId });
     if (!travelStory) {
@@ -255,18 +256,28 @@ app.delete('/delete-story/:id', authenticateToken, async (req, res) => {
         .status(400)
         .json({ error: true, message: 'Travel story not found' });
     }
-    //delete the travel story
-    await travelStory.deleteOne({ _id: id, userId: userId });
+
     const imageUrl = travelStory.imageUrl;
     const filename = path.basename(imageUrl);
-    const filePath = psth.join(__dirname, 'uploads', filename);
-    fs.unlink(filePath, err => {
+    const filePath = path.join(__dirname, 'uploads', filename);
+
+    // Delete the image file first
+    fs.unlink(filePath, async err => {
       if (err) {
         console.error('Failed to delete image file:', err);
+        return res
+          .status(500)
+          .json({ error: true, message: 'Image delete failed' });
       }
+
+      // Delete story from DB
+      await travelStory.deleteOne();
+      return res
+        .status(200)
+        .json({ message: 'Travel story deleted successfully' });
     });
-    res.status(200).json({ message: 'Travel story deleted successfully' });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: true, message: error.message });
   }
 });
@@ -276,6 +287,7 @@ app.put('/updated-favourite/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { isFavourite } = req.body;
   const { userId } = req.user;
+
   try {
     const travelStory = await TrvelStory.findOne({ _id: id, userId: userId });
     if (!travelStory) {
@@ -284,10 +296,16 @@ app.put('/updated-favourite/:id', authenticateToken, async (req, res) => {
         .json({ error: true, message: 'Travel story not found' });
     }
     travelStory.isFavourite = isFavourite;
+
     await travelStory.save();
-    res.status(200)({ story: travelStory, message: 'Updated successfully' });
+
+    res
+      .status(200)
+      .json({ story: travelStory, message: 'Updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
+    res
+      .status(200)
+      .json({ story: travelStory, message: 'Updated successfully' });
   }
 });
 

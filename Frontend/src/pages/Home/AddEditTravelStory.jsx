@@ -20,11 +20,11 @@ const AddEditTravelStory = ({
   onClose,
   getAllTravelStories,
 }) => {
-  const [title, setTitle] = useState(storyInfo?.title || '');
+  const [title, setTitle] = useState(storyInfo?.title);
   const [storyImg, setStoryImg] = useState(null);
-  const [story, setStory] = useState(storyInfo?.story || '');
+  const [story, setStory] = useState(storyInfo?.story);
   const [visitedLocation, setVisitedLocation] = useState(
-    storyInfo?.visitedLocation || ''
+    storyInfo?.visitedLocation
   );
   const [visitDate, setVisitDate] = useState(
     storyInfo?.visitDate ? new Date(storyInfo.visitDate) : null
@@ -33,12 +33,20 @@ const AddEditTravelStory = ({
   const handleAddUpdateClick = async () => {
     try {
       let imageUrl = null;
-
+      // Validate fields before sending
+      if (!title || !story || !visitedLocation || !visitDate) {
+        toast.error('Please fill in all fields');
+        return;
+      }
       if (storyImg) {
         const res = await uploadImage({ imageFile: storyImg });
         imageUrl = res.imageUrl;
       }
-      console.log(storyImg);
+      // Final validation including image
+      if (!imageUrl) {
+        toast.error('Please select and upload an image.');
+        return;
+      }
       const payload = {
         title,
         story,
@@ -46,7 +54,6 @@ const AddEditTravelStory = ({
         imageUrl,
         visitDate: visitDate?.getTime(),
       };
-
       if (type === 'add') {
         await axiosInstance.post('/add-travel-story', payload);
         toast.success('Story added successfully');
@@ -58,7 +65,7 @@ const AddEditTravelStory = ({
       getAllTravelStories();
       onClose();
     } catch (err) {
-      toast.error(err.message);
+      toast.error('Try again');
       console.error(err);
     }
   };

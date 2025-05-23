@@ -1,35 +1,7 @@
-// const multer = require('multer');
-// const path = require('path');
-
-// // sotrage configuration
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, './uploads');
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, Date.now() + path.extname(file.originalname));
-//   },
-// });
-
-// //file filter to accept only
-
-// const fileFilter = (req, file, cb) => {
-//   if (file.mimetype.startsWith('image/')) {
-//     cb(null, true);
-//   } else {
-//     cb(new Error('Only images are allowed'), false);
-//   }
-// };
-
-// // Multer middleware
-// const upload = multer({ storage, fileFilter });
-
-// module.exports = upload;
-
-
 const multer = require('multer');
 const path = require('path');
 
+// sotrage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads');
@@ -39,15 +11,17 @@ const storage = multer.diskStorage({
   },
 });
 
+//file filter to accept only
+
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed'), false);
+    cb(new Error('Only images are allowed'), false);
   }
 };
 
+// Multer middleware
 const upload = multer({ storage, fileFilter });
 
 module.exports = upload;
-
