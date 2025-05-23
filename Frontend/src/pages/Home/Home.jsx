@@ -7,6 +7,7 @@ import { MdAdd } from 'react-icons/md';
 import Modal from 'react-modal';
 import AddEditTravelStory from './AddEditTravelStory';
 import TravelStoryCard from '../../components/TravelStoryCard';
+import ViewModelStory from './ViewModelStory';
 
 Modal.setAppElement('#root');
 
@@ -20,11 +21,13 @@ const Home = () => {
     type: 'add',
     story: null,
   });
+
   const [openviewModel, setViewModel] = useState({
     isShow: false,
-    date: null,
+    story: null,
   });
-  //API Calls
+
+  // Fetch user info
   const fetchUserInfo = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get('/get-user');
@@ -39,6 +42,7 @@ const Home = () => {
     }
   }, [navigate]);
 
+  // Fetch all stories
   const fetchAllStories = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get('/get-all-stories');
@@ -48,20 +52,19 @@ const Home = () => {
     }
   }, []);
 
-  //  Lifecycle
   useEffect(() => {
     fetchUserInfo();
     fetchAllStories();
   }, [fetchUserInfo, fetchAllStories]);
 
-  // -------- Card Actions --------
+  // Card Actions
   const handleEdit = story =>
     setModalState({ isShow: true, type: 'edit', story });
 
   const handleViewStory = story => {
     setViewModel({
       isShow: true,
-      date: story,
+      story: story,
     });
   };
 
@@ -81,12 +84,25 @@ const Home = () => {
     }
   };
 
-  // -------- Render --------
+  const handleDelete = async storyId => {
+    try {
+      // Close modal first
+      setViewModel({ isShow: false, story: null });
+
+      await axiosInstance.delete(`/delete-story/${storyId}`);
+      toast.success('Story deleted');
+      fetchAllStories(); // optional
+    } catch (err) {
+      toast.error(err.message);
+      console.error(err);
+    }
+  };
+
   return (
     <>
       <Navbar userInfo={userInfo} />
 
-      <main className="container mx-auto py-10 ">
+      <main className="container mx-auto py-10">
         {stories.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6">
             {stories.map(story => (
@@ -111,7 +127,7 @@ const Home = () => {
         )}
       </main>
 
-      {/* Modal  */}
+      {/* Add/Edit Modal */}
       <Modal
         isOpen={modalState.isShow}
         onRequestClose={() =>
@@ -130,27 +146,29 @@ const Home = () => {
         />
       </Modal>
 
-      {/* view modal */}
+      {/* View Modal */}
       <Modal
         isOpen={openviewModel.isShow}
-        onRequestClose={() =>
-          setModalState({ isShow: false, type: 'add', story: null })
-        }
+        onRequestClose={() => setViewModel({ isShow: false, story: null })}
         overlayClassName="fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-4 overflow-y-auto"
         className="bg-white rounded-lg w-full max-w-2xl p-6 mt-10 mb-10 outline-none max-h-[90vh] overflow-y-auto"
       >
-        <AddEditTravelStory
-          type={modalState.type}
-          storyInfo={modalState.story}
-          onClose={() =>
-            setModalState({ isShow: false, type: 'add', story: null })
-          }
-          getAllTravelStories={fetchAllStories}
+        <ViewModelStory
+          storyInfo={openviewModel.story}
+          onEditClick={() => {
+            setModalState({
+              isShow: true,
+              type: 'edit',
+              story: openviewModel.story,
+            });
+            setViewModel({ isShow: false, story: null });
+          }}
+          onDeleteClick={() => handleDelete(openviewModel.story._id)}
+          onClose={() => setViewModel({ isShow: false, story: null })}
         />
       </Modal>
 
-      {/*  Floating Add Button  */}
-
+      {/* Floating Add Button */}
       <button
         className="w-16 h-16 flex items-center justify-center rounded-full bg-sky-500 hover:bg-sky-700 fixed right-10 bottom-10 z-40 shadow-lg cursor-pointer"
         onClick={() =>

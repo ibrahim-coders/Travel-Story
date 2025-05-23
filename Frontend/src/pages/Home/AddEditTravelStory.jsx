@@ -51,7 +51,7 @@ const AddEditTravelStory = ({
         await axiosInstance.post('/add-travel-story', payload);
         toast.success('Story added successfully');
       } else {
-        await axiosInstance.put(`/update-story/${storyInfo._id}`, payload);
+        await axiosInstance.put(`/edit-story/${storyInfo._id}`, payload);
         toast.success('Story updated successfully');
       }
 
@@ -59,18 +59,6 @@ const AddEditTravelStory = ({
       onClose();
     } catch (err) {
       toast.error(err.message);
-      console.error(err);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await axiosInstance.delete(`/delete-story/${storyInfo._id}`);
-      toast.success('Story deleted');
-      getAllTravelStories();
-      onClose();
-    } catch (err) {
-      toast.error('Delete failed');
       console.error(err);
     }
   };
@@ -91,12 +79,12 @@ const AddEditTravelStory = ({
               <button className={btn} onClick={handleAddUpdateClick}>
                 <MdUpdate className="text-lg" /> UPDATE
               </button>
-              <button
+              {/* <button
                 className={`${btn} bg-red-50 border-red-200 hover:bg-red-600`}
                 onClick={handleDelete}
               >
                 <MdDeleteOutline className="text-lg" /> DELETE
-              </button>
+              </button> */}
             </>
           )}
           <button className={btn} onClick={onClose}>
