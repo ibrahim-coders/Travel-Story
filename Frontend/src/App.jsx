@@ -7,6 +7,7 @@ import {
 import Home from './pages/Home/Home';
 import Login from './pages/Auth/Login';
 import SignUp from './pages/Auth/SignUp';
+import ErrorPage from './pages/Error/ErrorPage ';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </Router>
   );

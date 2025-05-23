@@ -168,6 +168,8 @@ app.post('/add-travel-story', authenticateToken, async (req, res) => {
 
 app.delete('/delete-image', async (req, res) => {
   const { imageUrl } = req.query;
+  console.log(imageUrl);
+
   if (!imageUrl) {
     return res
       .status(400)
@@ -178,7 +180,8 @@ app.delete('/delete-image', async (req, res) => {
     const filepath = path.join(__dirname, 'uploads', filename);
 
     if (fs.existsSync(filepath)) {
-      fs.status(200).json({ message: 'Image deleted sucessfully' });
+      fs.unlinkSync(filepath);
+      return res.status(200).json({ message: 'Image deleted successfully' });
     } else {
       res.status(200).json({ error: true, message: 'Image not found!' });
     }
@@ -210,34 +213,56 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
 });
 
 //Edit travle story
+
 app.put('/edit-story/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { title, story, visitedLocation, imageUrl, visitDate } = req.body;
   const { userId } = req.user;
+
   if (!title || !story || !visitedLocation || !imageUrl || !visitDate) {
     return res
       .status(400)
       .json({ error: true, message: 'All fields are required' });
   }
+
   const parseVisitedDate = new Date(parseInt(visitDate));
+
   try {
-    const travelStory = await TrvelStory.findOne({ _id: id, userId: userId });
+    const travelStory = await TrvelStory.findOne({ _id: id, userId });
     if (!travelStory) {
       return res
         .status(400)
         .json({ error: true, message: 'Travel story not found' });
     }
-    const placehoderImgUrl = `http://localhost:8000/assets/placeholder.png`;
+
+    //  image has changed
+    if (travelStory.imageUrl && travelStory.imageUrl !== imageUrl) {
+      const oldImagePath = path.join(
+        __dirname,
+        'uploads',
+        path.basename(travelStory.imageUrl)
+      );
+
+      if (!travelStory.imageUrl.includes('placeholder')) {
+        fs.unlink(oldImagePath, err => {
+          if (err) console.error('Error deleting old image:', err.message);
+        });
+      }
+    }
+
+    // Update fields
     travelStory.title = title;
     travelStory.story = story;
     travelStory.visitedLocation = visitedLocation;
-    travelStory.imageUrl = imageUrl || placehoderImgUrl;
+    travelStory.imageUrl = imageUrl;
     travelStory.visitDate = parseVisitedDate;
+
     await travelStory.save();
 
-    res
-      .status(200)
-      .json({ story: travelStory, message: 'Updated successfully' });
+    res.status(200).json({
+      story: travelStory,
+      message: 'Updated successfully',
+    });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }

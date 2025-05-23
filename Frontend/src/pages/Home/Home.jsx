@@ -8,6 +8,7 @@ import Modal from 'react-modal';
 import AddEditTravelStory from './AddEditTravelStory';
 import TravelStoryCard from '../../components/TravelStoryCard';
 import ViewModelStory from './ViewModelStory';
+import EmptyCard from '../../components/EmtyCard';
 
 Modal.setAppElement('#root');
 
@@ -15,6 +16,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
   const [stories, setStories] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [modalState, setModalState] = useState({
     isShow: false,
@@ -120,11 +122,15 @@ const Home = () => {
 
   return (
     <>
-      <Navbar userInfo={userInfo} />
+      <Navbar
+        userInfo={userInfo}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
 
       <main className="container mx-auto py-10">
         {stories.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-6">
             {stories.map(story => (
               <TravelStoryCard
                 key={story._id}
@@ -141,9 +147,14 @@ const Home = () => {
             ))}
           </div>
         ) : (
-          <p className="h-40 flex justify-center items-center text-lg text-gray-500">
-            No travel stories yet.
-          </p>
+          <EmptyCard
+            onAddClick={() =>
+              setModalState({ isShow: true, type: 'add', story: null })
+            }
+            onClose={() =>
+              setModalState({ isShow: false, type: 'add', story: null })
+            }
+          />
         )}
       </main>
 

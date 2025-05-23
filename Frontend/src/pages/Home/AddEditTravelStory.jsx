@@ -20,9 +20,10 @@ const AddEditTravelStory = ({
   onClose,
   getAllTravelStories,
 }) => {
-  const [title, setTitle] = useState(storyInfo?.title);
-  const [storyImg, setStoryImg] = useState(null);
-  const [story, setStory] = useState(storyInfo?.story);
+  const [title, setTitle] = useState(storyInfo?.title || '');
+  const [storyImg, setStoryImg] = useState(storyInfo?.imageUrl || null);
+  const [story, setStory] = useState(storyInfo?.story || '');
+
   const [visitedLocation, setVisitedLocation] = useState(
     storyInfo?.visitedLocation
   );
@@ -132,7 +133,12 @@ const AddEditTravelStory = ({
 
         <div>
           <label className={label}>IMAGE</label>
-          <ImageSelector storyImg={storyImg} setStoryImg={setStoryImg} />
+
+          <ImageSelector
+            storyImg={storyImg}
+            setStoryImg={setStoryImg}
+            image={storyInfo}
+          />
         </div>
 
         <div>

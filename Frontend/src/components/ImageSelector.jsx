@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
-import { MdImage, MdClose } from 'react-icons/md';
+import { MdImage, MdOutlineDeleteForever } from 'react-icons/md';
+import axiosInstance from '../utils/axiosInstance';
+import toast from 'react-hot-toast';
 
-const ImageSelector = ({ storyImg, setStoryImg }) => {
+const ImageSelector = ({ storyImg, setStoryImg, image }) => {
   const inputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -19,7 +21,18 @@ const ImageSelector = ({ storyImg, setStoryImg }) => {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    try {
+      if (image && !storyImg) {
+        await axiosInstance.delete('/delete-image', {
+          params: { imageUrl: image.imageUrl },
+        });
+        toast.success('Image deleted from server');
+      }
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+    }
+
     setStoryImg(null);
     setPreviewUrl(null);
     inputRef.current.value = null;
@@ -30,6 +43,8 @@ const ImageSelector = ({ storyImg, setStoryImg }) => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  const displayImage = previewUrl || image?.imageUrl;
 
   return (
     <div className="relative">
@@ -47,8 +62,8 @@ const ImageSelector = ({ storyImg, setStoryImg }) => {
       ) : (
         <div className="w-full h-[220px] overflow-hidden border border-slate-300 rounded relative">
           <img
-            src={previewUrl}
-            alt="Preview"
+            src={displayImage}
+            alt="Selected"
             className="w-full h-full object-cover"
           />
           <button
@@ -57,7 +72,7 @@ const ImageSelector = ({ storyImg, setStoryImg }) => {
             type="button"
             aria-label="Delete image"
           >
-            <MdClose className="text-red-500 text-lg" />
+            <MdOutlineDeleteForever className="text-red-500 text-lg cursor-pointer" />
           </button>
         </div>
       )}
