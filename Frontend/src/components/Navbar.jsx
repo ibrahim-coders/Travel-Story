@@ -5,12 +5,12 @@ const Navbar = ({
   userInfo,
   searchQuery,
   setSearchQuery,
-  onSearcNote,
+  onSearchNote,
   handleClearSearch,
 }) => {
   const handleSearch = () => {
     if (searchQuery) {
-      onSearcNote(searchQuery);
+      onSearchNote(searchQuery);
     }
   };
   const onClearSearch = () => {
@@ -18,12 +18,12 @@ const Navbar = ({
     setSearchQuery('');
   };
   return (
-    <div className="bg-white flex items-center justify-between px-6 py-2 drop-shadow sticky top-0 z-10">
-      <h2 className="text-xl italic font-bold text-sky-600">
+    <div className="bg-white flex items-center justify-between px-4 py-2 drop-shadow sticky top-0 z-10">
+      <h5 className="text-xl italic md:font-bold text-sky-600">
         Travel
         <br />
         Story
-      </h2>
+      </h5>
       <>
         <SearchBar
           value={searchQuery}

@@ -9,7 +9,8 @@ import AddEditTravelStory from './AddEditTravelStory';
 import TravelStoryCard from '../../components/TravelStoryCard';
 import ViewModelStory from './ViewModelStory';
 import EmptyCard from '../../components/EmtyCard';
-
+import { DayPicker } from 'react-day-picker';
+import moment from 'moment';
 Modal.setAppElement('#root');
 
 const Home = () => {
@@ -17,6 +18,7 @@ const Home = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [stories, setStories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateRange, setDateRanget] = useState({ from: null, to: null });
 
   const [modalState, setModalState] = useState({
     isShow: false,
@@ -29,7 +31,6 @@ const Home = () => {
     story: null,
   });
 
-  // Fetch user info
   const fetchUserInfo = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get('/get-user');
@@ -44,7 +45,6 @@ const Home = () => {
     }
   }, [navigate]);
 
-  // Fetch all stories
   const fetchAllStories = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get('/get-all-stories');
@@ -59,47 +59,38 @@ const Home = () => {
     fetchAllStories();
   }, [fetchUserInfo, fetchAllStories]);
 
-  // Card Actions
   const handleEdit = story =>
     setModalState({ isShow: true, type: 'edit', story });
 
   const handleViewStory = story => {
-    setViewModel({
-      isShow: true,
-      story: story,
-    });
+    setViewModel({ isShow: true, story });
   };
 
   const toggleFavourite = async story => {
     try {
       const updatedFavourite = !story.isFavourite;
-
-      // Optimistically update and sort
-      setStories(prev => {
-        const updated = prev.map(s =>
-          s._id === story._id ? { ...s, isFavourite: updatedFavourite } : s
-        );
-        // Sort after update
-        return [...updated].sort((a, b) => b.isFavourite - a.isFavourite);
-      });
-
+      setStories(prev =>
+        [
+          ...prev.map(s =>
+            s._id === story._id ? { ...s, isFavourite: updatedFavourite } : s
+          ),
+        ].sort((a, b) => b.isFavourite - a.isFavourite)
+      );
       const { data } = await axiosInstance.put(
         `/updated-favourite/${story._id}`,
-        { isFavourite: updatedFavourite }
+        {
+          isFavourite: updatedFavourite,
+        }
       );
-
-      if (data?.story) {
-        toast.success('Favourite updated');
-      }
+      if (data?.story) toast.success('Favourite updated');
     } catch (err) {
-      // Revert and sort
-      setStories(prev => {
-        const reverted = prev.map(s =>
-          s._id === story._id ? { ...s, isFavourite: story.isFavourite } : s
-        );
-        return [...reverted].sort((a, b) => b.isFavourite - a.isFavourite);
-      });
-
+      setStories(prev =>
+        [
+          ...prev.map(s =>
+            s._id === story._id ? { ...s, isFavourite: story.isFavourite } : s
+          ),
+        ].sort((a, b) => b.isFavourite - a.isFavourite)
+      );
       toast.error('Failed to update favourite');
       console.error(err);
     }
@@ -107,17 +98,56 @@ const Home = () => {
 
   const handleDelete = async storyId => {
     try {
-      // Close modal first
       setViewModel({ isShow: false, story: null });
-
       await axiosInstance.delete(`/delete-story/${storyId}`);
       toast.success('Story deleted');
-
       setStories(prev => prev.filter(story => story._id !== storyId));
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Delete failed');
       console.error(err);
     }
+  };
+
+  const onSearchStory = async query => {
+    try {
+      const response = await axiosInstance.post('/search-story', { query });
+      if (response.data?.stories) {
+        setStories(response.data.stories);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    fetchAllStories();
+  };
+  const filterStoriesByDate = async range => {
+    try {
+      const startDate = range.from ? moment(range.from).valueOf() : null;
+      const endDate = range.to ? moment(range.to).valueOf() : null;
+      console.log(startDate, endDate);
+      if (startDate && endDate) {
+        const response = await axiosInstance.get('/travle-story/filter', {
+          params: {
+            startDate,
+            endDate,
+          },
+        });
+        console.log(response);
+        if (response.data?.stories) {
+          setStories(response.data.stories);
+        }
+      }
+    } catch (error) {
+      console.error('Error filtering stories by date:', error);
+    }
+  };
+
+  const handleDayClick = day => {
+    setDateRanget(day);
+    filterStoriesByDate(day);
   };
 
   return (
@@ -126,36 +156,54 @@ const Home = () => {
         userInfo={userInfo}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        onSearchNote={onSearchStory}
+        handleClearSearch={handleClearSearch}
       />
-
-      <main className="container mx-auto py-10">
-        {stories.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-6">
-            {stories.map(story => (
-              <TravelStoryCard
-                key={story._id}
-                imgUrl={story.imageUrl}
-                title={story.title}
-                story={story.story}
-                visitedLocation={story.visitedLocation}
-                date={story.visitDate}
-                isFavourite={story.isFavourite}
-                onEdit={() => handleEdit(story)}
-                onClick={() => handleViewStory(story)}
-                onFavouriteClick={() => toggleFavourite(story)}
+      <main className="container mx-auto py-10 px-4">
+        <div className="flex flex-col-reverse lg:flex-row gap-6">
+          <div className="flex-1">
+            {stories.length ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {stories.map(story => (
+                  <TravelStoryCard
+                    key={story._id}
+                    imgUrl={story.imageUrl}
+                    title={story.title}
+                    story={story.story}
+                    visitedLocation={story.visitedLocation}
+                    date={story.visitDate}
+                    isFavourite={story.isFavourite}
+                    onEdit={() => handleEdit(story)}
+                    onClick={() => handleViewStory(story)}
+                    onFavouriteClick={() => toggleFavourite(story)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyCard
+                onAddClick={() =>
+                  setModalState({ isShow: true, type: 'add', story: null })
+                }
+                onClose={() =>
+                  setModalState({ isShow: false, type: 'add', story: null })
+                }
               />
-            ))}
+            )}
           </div>
-        ) : (
-          <EmptyCard
-            onAddClick={() =>
-              setModalState({ isShow: true, type: 'add', story: null })
-            }
-            onClose={() =>
-              setModalState({ isShow: false, type: 'add', story: null })
-            }
-          />
-        )}
+          <div className="w-full lg:w-[320px]">
+            <div className="bg-white border border-slate-200 shadow-lg shadow-slate-200/60 rounded-lg">
+              <div className="p-3 flex justify-center items-center md:flex-col">
+                <DayPicker
+                  captionLayout="dropdown-buttons"
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={handleDayClick}
+                  pageNavigation={true}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* Add/Edit Modal */}

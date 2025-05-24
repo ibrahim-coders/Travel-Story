@@ -1,5 +1,6 @@
-import { FaHeart, FaLocationDot } from 'react-icons/fa6';
+import { FaHeart } from 'react-icons/fa6';
 import moment from 'moment';
+import { IoLocationOutline } from 'react-icons/io5';
 
 const TravelStoryCard = ({
   imgUrl,
@@ -8,7 +9,6 @@ const TravelStoryCard = ({
   date,
   visitedLocation,
   isFavourite,
-  onEdit,
   onClick,
   onFavouriteClick,
 }) => {
@@ -51,9 +51,13 @@ const TravelStoryCard = ({
         </p>
 
         {/* Location */}
-        <div className="flex items-center gap-2 text-sm text-gray-700 mt-3">
-          <FaLocationDot className="text-base text-blue-500" />
-          <span>{visitedLocation}</span>
+
+        <div className=" flex items-centertext-center gap-2 text-[13px] text-cyan-600 rounded  py-2">
+          <span className="bg-cyan-50 flex gap-2 p-2">
+            {' '}
+            <IoLocationOutline className="text-sm" />
+            {visitedLocation}
+          </span>
         </div>
       </div>
     </div>

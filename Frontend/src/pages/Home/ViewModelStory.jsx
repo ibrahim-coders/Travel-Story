@@ -33,7 +33,7 @@ const ViewModelStory = ({ storyInfo, onEditClick, onDeleteClick, onClose }) => {
             {storyInfo?.visitDate &&
               moment(storyInfo.visitDate).format('Do MMM YYYY')}
           </span>
-          <div className=" flex items-center gap-2 text-[13px] text-cyan-600 rounded px-2 py-1">
+          <div className=" flex items-centertext-center gap-2 text-[13px] text-cyan-600 rounded px-2 py-1">
             <span className="bg-cyan-50 flex gap-2 p-2">
               {' '}
               <IoLocationOutline className="text-sm" />

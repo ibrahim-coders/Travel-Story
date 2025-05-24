@@ -336,8 +336,9 @@ app.put('/updated-favourite/:id', authenticateToken, async (req, res) => {
 
 //Search travle story
 app.post('/search-story', authenticateToken, async (req, res) => {
-  const { query } = req.query;
+  const { query } = req.body;
   const { userId } = req.user;
+
   if (!query) {
     return res.status(404).json({ error: true, message: 'Query is required' });
   }
@@ -357,21 +358,24 @@ app.post('/search-story', authenticateToken, async (req, res) => {
 });
 
 //filter
+
 app.get('/travle-story/filter', authenticateToken, async (req, res) => {
   const { startDate, endDate } = req.query;
   const { userId } = req.user;
+
   try {
     const start = new Date(parseInt(startDate));
     const end = new Date(parseInt(endDate));
     const filteredStories = await TrvelStory.find({
       userId: userId,
-      visitDate: { $gte: start, $let: end },
+      visitDate: { $gte: start, $lte: end },
     }).sort({ isFavourite: -1 });
     res.status(200).json({ stories: filteredStories });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
 });
+
 // server run
 app.listen(PORT, () => {
   console.log(`server run ${PORT} `);
