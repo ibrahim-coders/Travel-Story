@@ -123,6 +123,7 @@ const Home = () => {
     setSearchQuery('');
     fetchAllStories();
   };
+
   const filterStoriesByDate = async range => {
     try {
       const startDate = range.from ? moment(range.from).valueOf() : null;

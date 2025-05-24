@@ -1,5 +1,6 @@
 import Profile_Info from './Profile_Info';
 import SearchBar from './SearchBar';
+import logo from '../assets/logo.png';
 
 const Navbar = ({
   userInfo,
@@ -19,11 +20,7 @@ const Navbar = ({
   };
   return (
     <div className="bg-white flex items-center justify-between px-4 py-2 drop-shadow sticky top-0 z-10">
-      <h5 className="text-xl italic md:font-bold text-sky-600">
-        Travel
-        <br />
-        Story
-      </h5>
+      <img src={logo} alt="" className="w-15 h-16 rounded-full" />
       <>
         <SearchBar
           value={searchQuery}
