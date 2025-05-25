@@ -3,17 +3,22 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const config = require('./config.json');
 const mongoose = require('mongoose');
-const PORT = process.env.PORT || 8000;
-require('dotenv').config();
-
 const jwt = require('jsonwebtoken');
-const User = require('./models/user.models');
-const TrvelStory = require('./models/travelStory.models');
-const { authenticateToken } = require('./utilitie');
-const upload = require('./multer');
 const fs = require('fs');
 const path = require('path');
-mongoose.connect(process.env.MONGO_URL);
+const dotenv = require('dotenv');
+const upload = require('./multer');
+const User = require('./models/user.models');
+
+const TrvelStory = require('./models/travelStory.models');
+const { authenticateToken } = require('./utilitie');
+
+require('dotenv').config();
+const PORT = process.env.PORT || 8000;
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 const app = express();
 
@@ -24,6 +29,10 @@ app.use(
     origin: 'http://localhost:5173',
   })
 );
+//serve static files uploads
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'assets')));
 
 // creact account
 app.post('/create-account', async (req, res) => {
@@ -114,7 +123,7 @@ app.get('/get-user', authenticateToken, async (req, res) => {
   const { userId } = req.user;
   const isUser = await User.findOne({ _id: userId });
   if (!isUser) {
-    return res.status(404).json({ error: true, message: 'User not found' });
+    return res.sendStatus(401);
   }
   return res.json({
     user: isUser,
@@ -189,11 +198,6 @@ app.delete('/delete-image', async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 });
-
-//serve static files uploads
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'assets')));
 
 //serve static files uploads
 
@@ -381,5 +385,3 @@ app.get('/travle-story/filter', authenticateToken, async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-// module.exports = app;
