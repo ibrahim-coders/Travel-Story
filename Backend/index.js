@@ -26,7 +26,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'https://travel-story-mauve.vercel.app',
+    origin: 'https://travelstory1.netlify.app',
   })
 );
 //serve static files uploads
@@ -209,7 +209,7 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
         .status(400)
         .json({ error: true, message: 'No image uploaded' });
     }
-    const imageUrl = `https://travel-story-n9dx.vercel.app/uploads/${req.file?.filename}`;
+    const imageUrl = `https://travelstory1.netlify.app/uploads/${req.file?.filename}`;
     res.status(200).json({ imageUrl });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
