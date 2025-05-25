@@ -13,7 +13,7 @@ const { authenticateToken } = require('./utilitie');
 const upload = require('./multer');
 const fs = require('fs');
 const path = require('path');
-mongoose.connect(config.connectionString);
+mongoose.connect(process.env.MONGO_URL);
 
 const app = express();
 
@@ -114,7 +114,7 @@ app.get('/get-user', authenticateToken, async (req, res) => {
   const { userId } = req.user;
   const isUser = await User.findOne({ _id: userId });
   if (!isUser) {
-    return res.sendStatus(4001);
+    return res.status(404).json({ error: true, message: 'User not found' });
   }
   return res.json({
     user: isUser,
@@ -377,8 +377,9 @@ app.get('/travle-story/filter', authenticateToken, async (req, res) => {
 });
 
 // server run
+
 app.listen(PORT, () => {
-  console.log(`server run ${PORT} `);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
 
 module.exports = app;
