@@ -11,6 +11,7 @@ import ViewModelStory from './ViewModelStory';
 import EmptyCard from '../../components/EmtyCard';
 import { DayPicker } from 'react-day-picker';
 import moment from 'moment';
+import Spinner from '../../components/Spinner';
 Modal.setAppElement('#root');
 
 const Home = () => {
@@ -19,6 +20,7 @@ const Home = () => {
   const [stories, setStories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRanget] = useState({ from: null, to: null });
+  const [loading, setLoading] = useState(false);
 
   const [modalState, setModalState] = useState({
     isShow: false,
@@ -46,9 +48,11 @@ const Home = () => {
   }, [navigate]);
 
   const fetchAllStories = useCallback(async () => {
+    setLoading(true);
     try {
       const { data } = await axiosInstance.get('/get-all-stories');
       if (data?.stories) setStories(data.stories);
+      setLoading(false);
     } catch (err) {
       console.error(err);
     }
@@ -59,6 +63,10 @@ const Home = () => {
     fetchAllStories();
   }, [fetchUserInfo, fetchAllStories]);
 
+  //loading
+  if (loading) {
+    return <Spinner />;
+  }
   const handleEdit = story =>
     setModalState({ isShow: true, type: 'edit', story });
 

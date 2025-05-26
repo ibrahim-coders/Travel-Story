@@ -4,7 +4,6 @@ import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 import DateSelector from '../../components/DateSelector';
 import ImageSelector from '../../components/ImageSelector';
-import uploadImage from '../../utils/uploadImage';
 
 const btn =
   'inline-flex items-center gap-1 text-xs font-medium bg-cyan-50 text-slate-600 ' +
@@ -33,28 +32,29 @@ const AddEditTravelStory = ({
 
   const handleAddUpdateClick = async () => {
     try {
-      let imageUrl = null;
-      // Validate fields before sending
+      // let imageUrl = storyImg;
+
+      // const imageData = await uploadImage(imageUrl);
+      // console.log(imageData);
       if (!title || !story || !visitedLocation || !visitDate) {
         toast.error('Please fill in all fields');
         return;
       }
-      if (storyImg) {
-        const res = await uploadImage({ imageFile: storyImg });
-        imageUrl = res.imageUrl;
-      }
+
       // Final validation including image
-      if (!imageUrl) {
+      if (!storyImg) {
         toast.error('Please select and upload an image.');
         return;
       }
+
       const payload = {
         title,
         story,
         visitedLocation,
-        imageUrl,
-        visitDate: visitDate?.getTime(),
+        imageUrl: storyImg,
+        visitDate: visitDate?.toISOString(),
       };
+
       if (type === 'add') {
         await axiosInstance.post('/add-travel-story', payload);
         toast.success('Story added successfully');

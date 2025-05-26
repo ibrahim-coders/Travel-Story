@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { MdImage, MdOutlineDeleteForever } from 'react-icons/md';
-import axiosInstance from '../utils/axiosInstance';
-import toast from 'react-hot-toast';
+// import axiosInstance from '../utils/axiosInstance';
+// import toast from 'react-hot-toast';
+import uploadImage from '../utils/uploadImage';
 
 const ImageSelector = ({ storyImg, setStoryImg, image }) => {
   const inputRef = useRef(null);
@@ -11,27 +12,29 @@ const ImageSelector = ({ storyImg, setStoryImg, image }) => {
     inputRef.current.click();
   };
 
-  const handleImageChange = e => {
+  const handleImageChange = async e => {
     const file = e.target.files[0];
 
     if (file) {
-      setStoryImg(file);
+      const image = await uploadImage(file);
+
+      setStoryImg(image);
       const imageUrl = URL.createObjectURL(file);
       setPreviewUrl(imageUrl);
     }
   };
 
   const handleDelete = async () => {
-    try {
-      if (image && !storyImg) {
-        await axiosInstance.delete('/delete-image', {
-          params: { imageUrl: image.imageUrl },
-        });
-        toast.success('Image deleted from server');
-      }
-    } catch (error) {
-      console.error('Failed to delete image:', error);
-    }
+    // try {
+    //   if (image && !storyImg) {
+    //     await axiosInstance.delete('/delete-image', {
+    //       params: { imageUrl: image.imageUrl },
+    //     });
+    //     toast.success('Image deleted from server');
+    //   }
+    // } catch (error) {
+    //   console.error('Failed to delete image:', error);
+    // }
 
     setStoryImg(null);
     setPreviewUrl(null);

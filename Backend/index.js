@@ -26,7 +26,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'https://travelstory1.netlify.app',
+    origin: 'http://localhost:5173',
   })
 );
 //serve static files uploads
@@ -175,46 +175,57 @@ app.post('/add-travel-story', authenticateToken, async (req, res) => {
 
 //delete  an image from the folder
 
-app.delete('/delete-image', async (req, res) => {
-  const { imageUrl } = req.query;
-  console.log(imageUrl);
+// app.delete('/delete-image', async (req, res) => {
+//   const { imageUrl } = req.query;
+//   console.log(imageUrl);
 
-  if (!imageUrl) {
-    return res
-      .status(400)
-      .json({ error: true, message: 'ImageUrl parameter is required' });
-  }
-  try {
-    const filename = path.basename(imageUrl);
-    const filepath = path.join(__dirname, 'uploads', filename);
+//   if (!imageUrl) {
+//     return res
+//       .status(400)
+//       .json({ error: true, message: 'ImageUrl parameter is required' });
+//   }
+//   try {
+//     // const filename = path.basename(imageUrl);
+//     // const filepath = path.join(__dirname, 'uploads', filename);
 
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
-      return res.status(200).json({ message: 'Image deleted successfully' });
-    } else {
-      res.status(200).json({ error: true, message: 'Image not found!' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
-  }
-});
+//     // if (fs.existsSync(filepath)) {
+//     //   fs.unlinkSync(filepath);
+
+//     // } else {
+//     //   res.status(200).json({ error: true, message: 'Image not found!' });
+//     // }
+//     return res.status(200).json({ message: 'Image deleted successfully' });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// });
 
 //serve static files uploads
 
 //image upload
-app.post('/upload-image', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file?.filename) {
-      return res
-        .status(400)
-        .json({ error: true, message: 'No image uploaded' });
-    }
-    const imageUrl = `https://travelstory1.netlify.app/uploads/${req.file?.filename}`;
-    res.status(200).json({ imageUrl });
-  } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
-  }
-});
+// app.post('/upload-image', upload.single('image'), async (req, res) => {
+//   try {
+//     if (!req.file?.filename) {
+//       return res
+//         .status(400)
+//         .json({ error: true, message: 'No image uploaded' });
+//     }
+//     const imageUrl = `http://localhost:8000/uploads/${req.file?.filename}`;
+//     res.status(200).json({ imageUrl });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// });
+// app.post('/upload-image', upload.single('image'), (req, res) => {
+//   if (!req.file) {
+//     return res.status(400).json({ message: 'No file uploaded' });
+//   }
+
+//   res.json({
+//     message: 'Upload successful',
+//     imageUrl: req.file.path,
+//   });
+// });
 
 //Edit travle story
 
@@ -239,20 +250,20 @@ app.put('/edit-story/:id', authenticateToken, async (req, res) => {
         .json({ error: true, message: 'Travel story not found' });
     }
 
-    //  image has changed
-    if (travelStory.imageUrl && travelStory.imageUrl !== imageUrl) {
-      const oldImagePath = path.join(
-        __dirname,
-        'uploads',
-        path.basename(travelStory.imageUrl)
-      );
+    // //  image has changed
+    // if (travelStory.imageUrl && travelStory.imageUrl !== imageUrl) {
+    //   const oldImagePath = path.join(
+    //     __dirname,
+    //     'uploads',
+    //     path.basename(travelStory.imageUrl)
+    //   );
 
-      if (!travelStory.imageUrl.includes('placeholder')) {
-        fs.unlink(oldImagePath, err => {
-          if (err) console.error('Error deleting old image:', err.message);
-        });
-      }
-    }
+    //   if (!travelStory.imageUrl.includes('placeholder')) {
+    //     fs.unlink(oldImagePath, err => {
+    //       if (err) console.error('Error deleting old image:', err.message);
+    //     });
+    //   }
+    // }
 
     // Update fields
     travelStory.title = title;
@@ -280,31 +291,17 @@ app.delete('/delete-story/:id', authenticateToken, async (req, res) => {
 
   try {
     const travelStory = await TrvelStory.findOne({ _id: id, userId: userId });
+
     if (!travelStory) {
       return res
         .status(400)
         .json({ error: true, message: 'Travel story not found' });
     }
 
-    const imageUrl = travelStory.imageUrl;
-    const filename = path.basename(imageUrl);
-    const filePath = path.join(__dirname, 'uploads', filename);
-
-    // Delete the image file first
-    fs.unlink(filePath, async err => {
-      if (err) {
-        console.error('Failed to delete image file:', err);
-        return res
-          .status(500)
-          .json({ error: true, message: 'Image delete failed' });
-      }
-
-      // Delete story from DB
-      await travelStory.deleteOne();
-      return res
-        .status(200)
-        .json({ message: 'Travel story deleted successfully' });
-    });
+    await travelStory.deleteOne();
+    return res
+      .status(200)
+      .json({ message: 'Travel story deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: true, message: error.message });
