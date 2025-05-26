@@ -1,13 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const config = require('./config.json');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
+
 const path = require('path');
-const dotenv = require('dotenv');
-const upload = require('./multer');
 const User = require('./models/user.models');
 
 const TrvelStory = require('./models/travelStory.models');
@@ -26,13 +23,13 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://travel-stroy.netlify.app',
   })
 );
 //serve static files uploads
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'assets')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'assets')));
 
 // creact account
 app.post('/create-account', async (req, res) => {
